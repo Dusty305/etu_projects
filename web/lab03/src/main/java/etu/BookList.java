@@ -47,8 +47,7 @@ public class BookList extends HttpServlet {
             out.println("<html>");
             out.println("<head><title>Список книг</title></head>");
             out.println("<body>");
-            out.println("<h1>Список книг читателя " + (name != null ? name : "без имени") + "</h1>");
-            out.println("<table border='1'>");
+            out.println("<h1>Список книг читателя " + (name != null ? name : "без имени") + "</h1>");            out.println("<table border='1'>");
             out.println("<tr><td><b>Автор книги</b></td><td><b>Название книги</b></td><td><b>Прочитал</b></td></tr>");
             out.println("<tr><td>Булгаков</td><td>Мастер и Маргарита</td><td>Да</td></tr>");
             out.println("<tr><td>Пелевин</td><td>Чапаев и пустота</td><td>Нет</td></tr>");
