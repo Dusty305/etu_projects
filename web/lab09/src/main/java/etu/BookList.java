@@ -53,17 +53,17 @@ public class BookList extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             // Создание HTML-страницы
-            out.println("<html>");
-            out.println("<head><title>Список книг</title></head>");
-            out.println("<body>");
-            out.println("<h1>Список книг читателя " + name + "</h1>");
-            out.println("<table border='1'>");
-            out.println("<tr><td><b>Автор книги</b></td><td><b>Название книги</b></td><td><b>Прочитал</b></td></tr>");
-            out.println("<tr><td>Булгаков</td><td>Мастер и Маргарита</td><td>Да</td></tr>");
-            out.println("<tr><td>Пелевин</td><td>Чапаев и пустота</td><td>Нет</td></tr>");
-            out.println("</table>");
-            out.println("</body>");
-            out.println("</html>");
+            out.write("<html>\n" +
+                    "<head><title>Список книг</title></head>\n" +
+                    "<body>\n" +
+                    "<h1>Список книг читателя " + name + "</h1>\n" +
+                    "<table border='1'>\n" +
+                    "<tr><td><b>Автор книги</b></td><td><b>Название книги</b></td><td><b>Прочитал</b></td></tr>\n" +
+                    "<tr><td>Булгаков</td><td>Мастер и Маргарита</td><td>Да</td></tr>\n" +
+                    "<tr><td>Пелевин</td><td>Чапаев и пустота</td><td>Нет</td></tr>\n" +
+                    "</table>\n" +
+                    "</body>\n" +
+                    "</html>\n");
         } finally {
             // Закрытие потока вывода
             out.close();

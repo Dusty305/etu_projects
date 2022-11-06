@@ -33,7 +33,8 @@ public class BookListTestCase extends TestCase {
     @Test
     public void test() throws Exception
     {
-        when(correctRequest.getParameter("name")).thenReturn("Иван");
+        final String name = "Ivan";
+        when(correctRequest.getParameter("name")).thenReturn(name);
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         when(correctResponse.getWriter()).thenReturn(pw);
@@ -46,19 +47,20 @@ public class BookListTestCase extends TestCase {
         verify(correctRequest).setCharacterEncoding("utf-8");
         verify(correctResponse).setContentType("text/html;charset=UTF-8");
         String result = sw.getBuffer().toString();
-        assertEquals("<html>" +
-                "\n<head><title>Список книг</title></head>" +
-                        "\n<body>" +
-                        "\n<h1>Список книг читателя Иван</h1>" +
-                        "\n<table border='1'>" +
-                        "\n<tr><td><b>Автор книги</b></td><td><b>Название книги</b></td><td><b>Прочитал</b></td></tr>" +
-                        "\n<tr><td>Булгаков</td><td>Мастер и Маргарита</td><td>Да</td></tr>" +
-                        "\n<tr><td>Пелевин</td><td>Чапаев и пустота</td><td>Нет</td></tr>" +
-                        "\n</table>" +
-                        "\n</body>" +
-                        "\n</html>\n",
-                result);
-
+        assertEquals(
+                "<html>\n" +
+                        "<head><title>Список книг</title></head>\n" +
+                        "<body>\n" +
+                        "<h1>Список книг читателя " + name + "</h1>\n" +
+                        "<table border='1'>\n" +
+                        "<tr><td><b>Автор книги</b></td><td><b>Название книги</b></td><td><b>Прочитал</b></td></tr>\n" +
+                        "<tr><td>Булгаков</td><td>Мастер и Маргарита</td><td>Да</td></tr>\n" +
+                        "<tr><td>Пелевин</td><td>Чапаев и пустота</td><td>Нет</td></tr>\n" +
+                        "</table>\n" +
+                        "</body>\n" +
+                        "</html>\n",
+                result
+        );
         bookList.doPost(wrongRequest, wrongResponse);
         verify(correctRequest).setCharacterEncoding("utf-8");
         verify(wrongRequest).setAttribute("error", "ERROR");

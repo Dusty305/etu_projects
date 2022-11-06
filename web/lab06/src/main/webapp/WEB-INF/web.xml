@@ -4,4 +4,21 @@
 
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name> Список книг </web-resource-name>
+      <url-pattern> /BookList.jsp </url-pattern>
+      <http-method> GET </http-method>
+      <http-method> POST </http-method>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>manager</role-name>
+      <role-name>tomcat</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <!-- Определение вида аутентификации -->
+  <login-config>
+    <auth-method>BASIC</auth-method>
+    <realm-name> Write Book List </realm-name>
+  </login-config>
 </web-app>
