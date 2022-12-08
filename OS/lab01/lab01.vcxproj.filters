@@ -32,5 +32,8 @@
     <ClInclude Include="core.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="asynccopy1.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

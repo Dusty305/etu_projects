@@ -351,7 +351,8 @@ void async_file_copy(unordered_map<WCHAR, Volume*> volumes)
 
 		wcout << L"Введите полный путь до файла, откуда будут асинхронно копироваться данные: ";
 		wcin >> in_file_path;
-		const auto& bytes_ps = volumes[in_file_path[0]]->bytes_ps;
+		const DWORD bytes_ps = volumes[in_file_path[0]]->bytes_ps;
+		const DWORD sectors_pc = volumes[in_file_path[0]]->sectors_pc;
 
 		wcout << L"Введите полный путь до файла, куда будут асинхронно копироваться данные: ";
 		wcin >> out_file_path;
@@ -361,7 +362,10 @@ void async_file_copy(unordered_map<WCHAR, Volume*> volumes)
 		wcout << L"Введите количество перекрывающих операций ввода/вывода: ";
 		wcin >> overlapped_multiplier;
 
-		async_copy(in_file_path, out_file_path, bytes_ps * buffer_multiplier, overlapped_multiplier);
+		DWORD time = async_copy(in_file_path, out_file_path, sectors_pc * bytes_ps * buffer_multiplier, overlapped_multiplier);
+
+		cout << "Копирование завершено успешно." << endl
+			<< "Время копирования: " << time << " мс" << endl;
 	}
 	catch (const out_of_range exc)
 	{
