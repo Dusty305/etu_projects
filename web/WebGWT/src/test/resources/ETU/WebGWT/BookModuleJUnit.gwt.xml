@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module rename-to="BookModule">
+  <!-- Inherit our applications main module.                      -->
+  <inherits name='ETU.WebGWT.BookModule' />
+
+  <!-- Specify the path to any remote services.                   -->
+  <servlet path="/BookModule/greet" class="ETU.WebGWT.server.GreetingServiceImpl" />
+
+</module>

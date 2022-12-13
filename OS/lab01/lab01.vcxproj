@@ -132,7 +132,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asynccopy.h" />
-    <ClInclude Include="asynccopy1.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="diskutility.h" />
     <ClInclude Include="volume.h" />

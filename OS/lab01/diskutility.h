@@ -148,6 +148,14 @@ void print_file_info(const wstring& file_path);
 void print_file_time_info(const wstring& file_path);
 void change_file_time_info(const wstring& file_path);
 
+bool input_time(FILETIME* ft)
+{
+	SYSTEMTIME st;
+	std::cout << "Введите час, минуты, секунды, день, месяц и год через пробел: ";
+	std::cin >> st.wHour >> st.wMinute >> st.wSecond >> st.wDay >> st.wMonth >> st.wYear;
+	return SystemTimeToFileTime(&st, ft);
+}
+
 void print_change_file_attributes()
 {
 	string inp;
@@ -363,9 +371,11 @@ void async_file_copy(unordered_map<WCHAR, Volume*> volumes)
 		wcin >> overlapped_multiplier;
 
 		DWORD time = async_copy(in_file_path, out_file_path, sectors_pc * bytes_ps * buffer_multiplier, overlapped_multiplier);
-
-		cout << "Копирование завершено успешно." << endl
-			<< "Время копирования: " << time << " мс" << endl;
+		if (time == -1)
+			cout << "Копирование завершено с ошибкой." << endl;
+		else
+			cout << "Копирование завершено успешно." << endl
+				 << "Время копирования: " << time << " мс" << endl;
 	}
 	catch (const out_of_range exc)
 	{

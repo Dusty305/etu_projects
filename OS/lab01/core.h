@@ -28,11 +28,3 @@ void print_winapi_error() noexcept
 
 	std::cout << "Произошла ошибка: " << message << "(Код ошибки: 0x" << std::hex << GetLastError() << ")\n";
 }
-
-bool input_time(FILETIME* ft)
-{
-	SYSTEMTIME st;
-	std::cout << "Введите час, минуты, секунды, день, месяц и год через пробел: ";
-	std::cin >> st.wHour >> st.wMinute >> st.wSecond >> st.wDay >> st.wMonth >> st.wYear;
-	return SystemTimeToFileTime(&st, ft);
-}

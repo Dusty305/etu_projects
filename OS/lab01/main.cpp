@@ -4,6 +4,8 @@ int main()
 {
 	setlocale(LC_ALL, "Russian");
 
+	AsyncCopyHandle** ach = new AsyncCopyHandle*[10];
+
 	cout << "Сбор информации о дисках...\n";
 	unordered_map<WCHAR, Volume*> volumes;
 	wstring vol = L"A:\\";
