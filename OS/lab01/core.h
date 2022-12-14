@@ -7,6 +7,7 @@
 #include <utility>
 #include <stdexcept>
 #include <format>
+#include <sstream>
 
 using namespace std;
 

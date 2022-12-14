@@ -1,6 +1,7 @@
 #pragma once
 
 #include "volume.h"
+#include "fileattr.h"
 
 /*
 	Вывод списка дисков.
@@ -142,29 +143,17 @@ void copy_move_file()
 	GetFileInformationByHandle, GetFileTime, SetFileTime.
 */
 
-void print_file_attributes(const wstring& file_path);
-void change_file_attributes(const wstring& file_path);
-void print_file_info(const wstring& file_path);
-void print_file_time_info(const wstring& file_path);
-void change_file_time_info(const wstring& file_path);
-
-bool input_time(FILETIME* ft)
-{
-	SYSTEMTIME st;
-	std::cout << "Введите час, минуты, секунды, день, месяц и год через пробел: ";
-	std::cin >> st.wHour >> st.wMinute >> st.wSecond >> st.wDay >> st.wMonth >> st.wYear;
-	return SystemTimeToFileTime(&st, ft);
-}
-
 void print_change_file_attributes()
 {
 	string inp;
 	cout << "1. Анализ атрибутов файла\n"
-		<< "2. Изменение атрибутов файла\n"
-		<< "3. Анализ информации о файле\n"
-		<< "4. Анализ времени создания, использования и изменение файла\n"
-		<< "5. Изменение времени создания, использования и изменение файла\n";
+		 << "2. Изменение атрибутов файла\n"
+		 << "3. Анализ информации о файле\n"
+		 << "4. Анализ времени создания, использования и изменение файла\n"
+		 << "5. Изменение времени создания, использования и изменение файла\n";
 	cin >> inp;
+	if (inp[0] < '1' or inp[0] > '5')
+		return;
 	wstring file_path;
 	cout << "Введите путь до файла: ";
 	wcin >> file_path;
@@ -186,150 +175,6 @@ void print_change_file_attributes()
 		change_file_time_info(file_path);
 		break;
 	}
-}
-
-void print_file_attributes(const wstring& file_path)
-{
-	DWORD attr = GetFileAttributes(file_path.c_str());
-	if (attr != INVALID_FILE_ATTRIBUTES)
-		cout << "Аттрибут файла: 0x" << hex << attr << "\n";
-	else
-		print_winapi_error();
-}
-
-void change_file_attributes(const wstring& file_path)
-{
-	DWORD attr;
-	cout << "Введите новый аттрибут файла: 0x";
-	wcin >> hex >> attr;
-	if (!SetFileAttributes(file_path.c_str(), attr))
-		print_winapi_error();
-}
-
-void print_file_info(const wstring& file_path)
-{
-	auto f_handle = CreateFile(file_path.c_str(), NULL, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (f_handle == INVALID_HANDLE_VALUE)
-		print_winapi_error();
-	else
-		CloseHandle(f_handle);
-	BY_HANDLE_FILE_INFORMATION inf;
-	if (!GetFileInformationByHandle(f_handle, &inf))
-	{
-		print_winapi_error();
-	}
-	else
-	{
-		cout << "\nРазмер файла: " << inf.nFileSizeHigh << inf.nFileSizeLow;
-		cout << "\nИндекс файла: " << inf.nFileIndexHigh << inf.nFileIndexLow;
-		cout << "\nКоличество ссылок на файл: " << inf.nNumberOfLinks << "\n";
-	}
-}
-
-void print_file_time_info(const wstring& file_path)
-{
-	auto f_handle = CreateFile(file_path.c_str(), NULL, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (f_handle == INVALID_HANDLE_VALUE)
-		print_winapi_error();
-	else
-		CloseHandle(f_handle);
-
-	BY_HANDLE_FILE_INFORMATION inf;
-	FILETIME creation_ft, last_access_ft, last_write_ft;
-	if (!GetFileTime(f_handle, &creation_ft, &last_access_ft, &last_write_ft))
-	{
-		print_winapi_error();
-		return;
-	}
-
-	SYSTEMTIME creation_st, last_access_st, last_write_st;
-	string creation_str, last_access_str, last_write_str;
-	if (!FileTimeToSystemTime(&inf.ftCreationTime, &creation_st))
-	{
-		print_winapi_error();
-		return;
-	}
-	else
-		creation_str = format("{}:{}:{} {}.{}.{}", creation_st.wHour, creation_st.wMinute, creation_st.wSecond,
-			creation_st.wDay, creation_st.wMonth, creation_st.wYear);
-	if (!FileTimeToSystemTime(&inf.ftLastWriteTime, &last_write_st))
-	{
-		print_winapi_error();
-		return;
-	}
-	else
-		last_write_str = format("{}:{}:{} {}.{}.{}", last_write_st.wHour, last_write_st.wMinute, last_write_st.wSecond,
-			last_write_st.wDay, last_write_st.wMonth, last_write_st.wYear);
-	if (!FileTimeToSystemTime(&inf.ftLastAccessTime, &last_access_st))
-	{
-		print_winapi_error();
-		return;
-	}
-	else
-		last_access_str = format("{}:{}:{} {}.{}.{}", last_access_st.wHour, last_access_st.wMinute, last_access_st.wSecond,
-			last_access_st.wDay, last_access_st.wMonth, last_access_st.wYear);
-
-	cout << "\nВремя создание: " << creation_str;
-	cout << "\nВремя последнего использования: " << last_access_str;
-	cout << "\nВремя последнего изменения: " << last_write_str;
-}
-
-void change_file_time_info(const wstring& file_path)
-{
-	auto f_handle = CreateFile(file_path.c_str(), NULL, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (f_handle == INVALID_HANDLE_VALUE)
-	{
-		print_winapi_error();
-		return;
-	}
-	else
-		CloseHandle(f_handle);
-
-	FILETIME* creation_ft = nullptr,
-		* last_write_ft = nullptr,
-		* last_access_ft = nullptr;
-	bool yes;
-
-	cout << "Хотите изменить время создания файла? (1 - да, 0 - нет)\n";
-	cin >> yes;
-	if (yes)
-	{
-		creation_ft = new FILETIME;
-		if (!input_time(creation_ft))
-		{
-			print_winapi_error();
-			delete creation_ft;
-			return;
-		}
-	}
-	cout << "Хотите изменить время последней записи файла? (1 - да, 0 - нет)\n";
-	cin >> yes;
-	if (yes)
-	{
-		last_write_ft = new FILETIME;
-		if (!input_time(last_write_ft))
-		{
-			print_winapi_error();
-			delete creation_ft, last_write_ft;
-			return;
-		}
-	}
-	cout << "Хотите изменить время создания файла? (1 - да, 0 - нет)\n";
-	cin >> yes;
-	if (yes)
-	{
-		last_access_ft = new FILETIME;
-		if (!input_time(last_access_ft))
-		{
-			print_winapi_error();
-			delete creation_ft, last_write_ft, last_access_ft;
-			return;
-		}
-	}
-	if (!SetFileTime(f_handle, creation_ft, last_access_ft, last_write_ft))
-		print_winapi_error();
-
-	delete creation_ft, last_write_ft, last_access_ft;
 }
 
 /*
