@@ -34,7 +34,6 @@ DWORD async_copy(const wstring& in, const wstring& out, const DWORD btc, const D
 	HANDLE out_file = nullptr;
 	DWORD start_time, end_time;
 	LPOVERLAPPED overlapped = nullptr;
-	LARGE_INTEGER offset = { 0 };
 
 	//OPEN FILES
 	in_file = CreateFile(in.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED | FILE_FLAG_NO_BUFFERING, NULL);
@@ -49,10 +48,14 @@ DWORD async_copy(const wstring& in, const wstring& out, const DWORD btc, const D
 
 	ac_handles = new AsyncCopyHandle*[ovm];
 	overlapped = new OVERLAPPED[ovm];
+	LARGE_INTEGER offset = { 0 };
 	for (int i = 0; i < ovm; i++)
 	{
 		ac_handles[i] = new AsyncCopyHandle(ovm, btc, in_file, out_file, file_size);
 
+		overlapped[i].Internal = 0;
+		overlapped[i].InternalHigh = 0;
+		overlapped[i].Pointer = 0;
 		overlapped[i].hEvent = ac_handles[i];
 		overlapped[i].Offset = offset.LowPart;
 		overlapped[i].OffsetHigh = offset.HighPart;
@@ -76,11 +79,8 @@ DWORD async_copy(const wstring& in, const wstring& out, const DWORD btc, const D
 
 VOID WINAPI async_write(DWORD code, DWORD bytes, LPOVERLAPPED lpOv)
 {
-	if(bytes > 0)
-	{
-		AsyncCopyHandle* ach = (AsyncCopyHandle*)lpOv->hEvent;
-		WriteFileEx(ach->out_file, ach->buffer, bytes, lpOv, async_read);
-	}
+	AsyncCopyHandle* ach = (AsyncCopyHandle*)lpOv->hEvent;
+	WriteFileEx(ach->out_file, ach->buffer, bytes, lpOv, async_read);
 }
 
 VOID WINAPI async_read(DWORD code, DWORD bytes, LPOVERLAPPED lpOv)
@@ -89,7 +89,8 @@ VOID WINAPI async_read(DWORD code, DWORD bytes, LPOVERLAPPED lpOv)
 	LARGE_INTEGER new_offset;
 	new_offset.LowPart = lpOv->Offset;
 	new_offset.HighPart = lpOv->OffsetHigh;
-	new_offset.QuadPart += (LONGLONG)(ach->overlapped_multiplier * ach->bytes_tc);
+	LONGLONG step = (LONGLONG)(ach->overlapped_multiplier * ach->bytes_tc);
+	new_offset.QuadPart += step;
 
 	if (new_offset.QuadPart < ach->file_size.QuadPart)
 	{
