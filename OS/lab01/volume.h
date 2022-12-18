@@ -25,8 +25,11 @@ struct Volume
 	// Sectors per cluster
 	DWORD sectors_pc = 0;
 
-	// Bytes per sector
+	// Bytes per logical sector
 	DWORD bytes_ps = 0;
+
+	// Bytes per physical sector
+	DWORD bytes_pps = 0;
 
 	// Number of free clusters
 	DWORD free_cn = 0;
@@ -41,6 +44,9 @@ struct Volume
 	Volume(std::wstring vol_name) : volume_name(vol_name.c_str())
 	{
 		std::wcout << L"ќбнаружен диск " << volume_name << L"\n";
+
+		bytes_pps = get_bytes_per_physical_sector(volume_name[0]);
+
 		switch (GetDriveType(volume_name))
 		{
 		case DRIVE_UNKNOWN:   drive_type = L"не удалось определить тип диска";  break;
@@ -74,5 +80,56 @@ struct Volume
 	{
 		delete[] name_buffer;
 		delete[] sys_name_buffer;
+	}
+
+	DWORD get_bytes_per_physical_sector(char cDisk)
+	{
+		HANDLE hDevice;
+
+		std::wstring logicalDrive = L"\\\\.\\";
+		wchar_t drive[3];
+		drive[0] = cDisk;
+		drive[1] = L':';
+		drive[2] = L'\0';
+		logicalDrive.append(drive);
+
+		hDevice = CreateFile(
+			logicalDrive.c_str(),
+			0,
+			0,
+			NULL,
+			OPEN_EXISTING,
+			0,
+			NULL);
+
+		if (hDevice == INVALID_HANDLE_VALUE)
+		{
+			throw std::exception();
+		}
+
+		// Now that we have the device handle for the disk, let us get disk's metadata
+		DWORD outsize;
+		STORAGE_PROPERTY_QUERY storageQuery;
+		memset(&storageQuery, 0, sizeof(STORAGE_PROPERTY_QUERY));
+		storageQuery.PropertyId = StorageAccessAlignmentProperty;
+		storageQuery.QueryType = PropertyStandardQuery;
+
+		STORAGE_ACCESS_ALIGNMENT_DESCRIPTOR diskAlignment = { 0 };
+		memset(&diskAlignment, 0, sizeof(STORAGE_ACCESS_ALIGNMENT_DESCRIPTOR));
+
+		if (!DeviceIoControl(hDevice,
+			IOCTL_STORAGE_QUERY_PROPERTY,
+			&storageQuery,
+			sizeof(STORAGE_PROPERTY_QUERY),
+			&diskAlignment,
+			sizeof(STORAGE_ACCESS_ALIGNMENT_DESCRIPTOR),
+			&outsize,
+			NULL)
+			)
+		{
+			throw std::exception();
+		}
+
+		return diskAlignment.BytesPerPhysicalSector;
 	}
 };
