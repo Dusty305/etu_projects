@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{372817b4-2aaf-4b04-b2ce-463ea4057050}</ProjectGuid>
-    <RootNamespace>oslab02writer</RootNamespace>
+    <ProjectGuid>{c545f1ec-4f10-4fa5-a1dd-bcdb1d1decbd}</ProjectGuid>
+    <RootNamespace>VirtualMemWriter</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -127,7 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="os_lab02_writer.cpp" />
+    <ClCompile Include="vmw_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -15,14 +15,14 @@ void get_system_info()
 	GetSystemInfo(&si);
 	string arch = get_processor_architecture(si.wProcessorArchitecture);
 
-	cout 
-		<< "OEM ID: "											   << si.dwOemId					 << endl
-		<< "Архитектура процессора: "							   << arch							 << endl
-		<< "Размер страницы: "									   << si.dwPageSize					 << endl
-		<< "Нижняя граница адресов (base адрес): "				   << si.lpMinimumApplicationAddress << endl
-		<< "Верхняя граница адресов (bound адрес): "			   << si.lpMaximumApplicationAddress << endl
-		<< "Количество логических процессоров в текущей группе: "  << si.dwNumberOfProcessors		 << endl
-		<< "Маска активных процессоров: "						   << si.dwActiveProcessorMask		 << endl;
+	cout
+		<< "OEM ID: " << si.dwOemId << endl
+		<< "Архитектура процессора: " << arch << endl
+		<< "Размер страницы: " << si.dwPageSize << endl
+		<< "Нижняя граница адресов (base адрес): " << si.lpMinimumApplicationAddress << endl
+		<< "Верхняя граница адресов (bound адрес): " << si.lpMaximumApplicationAddress << endl
+		<< "Количество логических процессоров в текущей группе: " << si.dwNumberOfProcessors << endl
+		<< "Маска активных процессоров: " << si.dwActiveProcessorMask << endl;
 }
 
 string get_processor_architecture(WORD arch)
@@ -70,7 +70,7 @@ void get_vm_status()
 }
 
 /*
-	Определение состояния конкретного участка памяти 
+	Определение состояния конкретного участка памяти
 	по заданному с клавиатуры адресу.
 
 	Функция Win32 API – VirtualQuery.
@@ -153,7 +153,7 @@ void alloc_vm(DWORD alloc_type)
 		print_winapi_error();
 	else
 		cout << "Резервирование региона прошло успешно.\n";
-		
+
 }
 
 /*
@@ -215,7 +215,7 @@ void set_pm_protection()
 
 	cout << "Введите адрес региона для которого нужно изменить защиту доступа: ";
 	wcin >> hex >> address >> dec;
-	
+
 	VirtualQuery(address, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
 	//error check?
 
