@@ -1,4 +1,26 @@
-#include "core.h"
+#include <iostream>
+#include <Windows.h>
+
+
+using namespace std;
+
+void print_winapi_error() noexcept
+{
+	DWORD error = GetLastError();
+	string message;
+	if (error == 0)
+		message = string();
+	else
+	{
+		LPSTR message_buffer = nullptr;
+		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), (LPSTR)&message_buffer, 0, NULL);
+		message = string(message_buffer, size);
+		LocalFree(message_buffer);
+	}
+
+	cout << "Ошибка: " << message << "(Код ошибки: 0x" << hex << GetLastError() << ")\n";
+}
 
 
 /*
@@ -16,13 +38,17 @@ void get_system_info()
 	string arch = get_processor_architecture(si.wProcessorArchitecture);
 
 	cout
-		<< "OEM ID: " << si.dwOemId << endl
 		<< "Архитектура процессора: " << arch << endl
 		<< "Размер страницы: " << si.dwPageSize << endl
 		<< "Нижняя граница адресов (base адрес): " << si.lpMinimumApplicationAddress << endl
 		<< "Верхняя граница адресов (bound адрес): " << si.lpMaximumApplicationAddress << endl
-		<< "Количество логических процессоров в текущей группе: " << si.dwNumberOfProcessors << endl
-		<< "Маска активных процессоров: " << si.dwActiveProcessorMask << endl;
+		<< "Степень детализации начального адреса виртуальной памяти: " << si.dwAllocationGranularity << endl
+		<< "Количество логических процессоров в текущей группе: " << si.dwNumberOfProcessors << endl\
+		<< "Уровень процессора: " << si.wProcessorLevel << endl;
+	
+	cout << "Таблица \"номер процессора\"-\"настроен ли он в системе\"\n";
+	for (int i = 0; i < 32; i++)
+		cout << i + 1 << '\t' << (si.dwActiveProcessorMask & (1 << i) ? '+' : '-') << endl;
 }
 
 string get_processor_architecture(WORD arch)
@@ -60,13 +86,13 @@ void get_vm_status()
 	}
 
 	cout
-		<< "Процент используемой физической памяти: " << ms.dwMemoryLoad << endl
-		<< "Объём физической памяти: " << ms.ullTotalPhys << " байтов" << endl
-		<< "Доступно физической памяти: " << ms.ullAvailPhys << " байтов" << endl
-		<< "Предел памяти для процесса: " << ms.ullTotalPageFile << endl
-		<< "Максимальный объём памяти, который можно зафиксировать: " << ms.ullAvailPageFile << " байтов" << endl
-		<< "Размер ВАП для процесса: " << ms.ullTotalVirtual << endl
-		<< "Объем незарезервированного и незафиксированного объема памяти в ВАП для процесса: " << ms.ullAvailVirtual << endl;
+		<< "Используется " << ms.dwMemoryLoad << "% физической памяти" << endl
+		<< "Объём физической памяти: " << ms.ullTotalPhys << " байт\n"
+		<< "Доступно физической памяти: " << ms.ullAvailPhys << " байт\n"
+		<< "Предел памяти для процесса: " << ms.ullTotalPageFile << " байт\n"
+		<< "Максимальный объём памяти, который можно зафиксировать: " << ms.ullAvailPageFile << " байт\n"
+		<< "Размер ВАП для процесса: " << ms.ullTotalVirtual << " байт\n" 
+		<< "Объем незарезервированного и незафиксированного объема памяти в ВАП для процесса: " << ms.ullAvailVirtual << " байт\n";
 }
 
 /*
@@ -113,16 +139,26 @@ void get_pm_status()
 	case MEM_PRIVATE:
 		type = "страницы являются частными";
 		break;
+	default:
+		type = "ОШИБКА";
 	}
 
 	cout
 		<< "Указатель на базовый адрес области страниц: " << mbi.BaseAddress << endl
 		<< "Указатель на базовый адрес диапазона страниц: " << mbi.AllocationBase << endl
-		<< "Параметр защиты памяти при первоначальном выделении региона: " << hex << mbi.AllocationProtect << endl
-		<< "Настоящий параметр защиты памяти: " << hex << mbi.Protect << endl
+		<< "Параметр защиты памяти при первоначальном выделении региона: 0x" << hex << mbi.AllocationProtect << endl
+		<< "Настоящий параметр защиты памяти: 0x" << hex << mbi.Protect << endl
 		<< "Размер региона страниц: " << dec << mbi.RegionSize << " байтов" << endl
 		<< "Состояние страниц в регионе: " << state << endl
 		<< "Тип страниц в регионе: " << type << endl;
+
+	if (0x66 & mbi.Protect and mbi.State == MEM_COMMIT)
+	{
+		cout << "Содержание региона:\n";
+		for (int i = 0; i < mbi.RegionSize; i++)
+			cout << (unsigned)(*((uint8_t*)mbi.BaseAddress + i)) << " ";
+		cout << endl;
+	}
 }
 
 /*
@@ -152,7 +188,7 @@ void alloc_vm(DWORD alloc_type)
 	if (!address)
 		print_winapi_error();
 	else
-		cout << "Резервирование региона прошло успешно.\n";
+		cout << "Резервирование региона (по адресу " << hex << address << ") прошло успешно.\n";
 
 }
 

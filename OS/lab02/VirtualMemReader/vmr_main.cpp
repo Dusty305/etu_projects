@@ -115,7 +115,7 @@ public:
 			return;
 		}
 
-		byte* b = (byte*)address;
+		uint8_t* b = (uint8_t*)address;
 		cout << "Áàéòû ïğîåöèğóåìîãî ôğàãìåíòà ôàéëà: ";
 		unsigned n;
 		for (SIZE_T i = 0; i < size; i++)
