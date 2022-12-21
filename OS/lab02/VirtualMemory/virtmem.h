@@ -198,7 +198,6 @@ void alloc_vm(DWORD alloc_type)
 */
 void write_to_pm()
 {
-	// Исправить??
 	MEMORY_BASIC_INFORMATION mbi;
 	LPVOID address = nullptr;
 
@@ -206,7 +205,6 @@ void write_to_pm()
 	wcin >> hex >> address >> dec;
 
 	VirtualQuery(address, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
-	// error check?
 
 	if (mbi.State != MEM_COMMIT)
 	{
