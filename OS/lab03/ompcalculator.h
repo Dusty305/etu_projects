@@ -18,10 +18,9 @@ ULONGLONG calculate_pi_omp(int thread_n, double& pi)
 	{
 		double sum = 0;
 
-		#pragma omp for
-		for(int block = 0; block < block_n; block++)
-			for(int i = block * iterations_per_block; i < block * iterations_per_block + iterations_per_block; i++)
-				sum += 4 / (1 + ((i + 0.5) / precesion) * ((i + 0.5) / precesion));
+		#pragma omp for schedule(dynamic, 10)
+		for(int i = 0; i < precesion; ++i)
+			sum += 4 / (1 + ((i + 0.5) / precesion) * ((i + 0.5) / precesion));
 		omp_set_lock(&lock);
 		pi += sum;
 		omp_unset_lock(&lock);

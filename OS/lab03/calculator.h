@@ -1,27 +1,32 @@
 #include <Windows.h>
 
+LPCRITICAL_SECTION lpCriticalSection = new CRITICAL_SECTION;
+UINT counter;
+double global_pi;
 
 void count_pi(void* in_parameters)
 {
 	PVOID** parameters = (PVOID**)in_parameters;
 	double* pi = (double*)parameters[0];
-	UINT current_block = *(int*)(parameters[1]);
-	const HANDLE mutex = *(HANDLE*)(parameters[2]);
-	const UINT thread_n = *(int*)(parameters[3]);
-	const UINT iterations_per_block = *(UINT*)(parameters[4]);
-	const UINT precesion = *(UINT*)(parameters[5]);
+	const HANDLE mutex = *(HANDLE*)(parameters[1]);
+	const UINT iterations_per_block = *(UINT*)(parameters[2]);
+	const UINT precesion = *(UINT*)(parameters[3]);
+	UINT iteration = *(UINT*)(parameters[4]);
+	UINT N = precesion / iterations_per_block;
 
-	double sum = 0;
-	while (current_block < precesion)
+	while (iteration < N)
 	{
-		for(int i = current_block; i < current_block + iterations_per_block; i++)
+		double sum = 0;
+		UINT block_start = iteration * iterations_per_block;
+		UINT block_end = block_start + iterations_per_block;
+		for (int i = block_start; i < block_end && i < N; i++)
 			sum += 4 / (1 + ((i + 0.5) / precesion) * ((i + 0.5) / precesion));
-		current_block += thread_n * iterations_per_block;
-	}
 
-	WaitForSingleObject(mutex, INFINITE);
-	*pi += sum;
-	ReleaseMutex(mutex);
+		EnterCriticalSection(lpCriticalSection);
+		global_pi += sum;
+		iteration = ++counter;
+		LeaveCriticalSection(lpCriticalSection);
+	}
 }
 
 ULONGLONG calculate_pi(UINT thread_n, double& pi)
@@ -36,18 +41,23 @@ ULONGLONG calculate_pi(UINT thread_n, double& pi)
 
 	threads = new HANDLE[thread_n];
 	starting_iterations = new UINT[thread_n];
-	parameters = new PVOID*[thread_n];
+	parameters = new PVOID * [thread_n];
 	mutex = CreateMutex(NULL, FALSE, NULL);
-	
+	global_pi = 0; 
+	counter = 0;
+	InitializeCriticalSection(lpCriticalSection);
+
 	for (int i = 0; i < thread_n; i++) {
+		starting_iterations[i] = i;
 		parameters[i] = new PVOID[6];
 		starting_iterations[i] = i * iterations_per_block;
 		parameters[i][0] = &pi;
-		parameters[i][1] = &starting_iterations[i];
-		parameters[i][2] = &mutex;
-		parameters[i][3] = &thread_n;
-		parameters[i][4] = &iterations_per_block;
-		parameters[i][5] = &precesion;
+		parameters[i][1] = &mutex;
+		parameters[i][2] = &iterations_per_block;
+		parameters[i][3] = &precesion;
+		parameters[i][4] = &starting_iterations[i];
+		parameters[i][5] = &counter;
+		counter++;
 
 		threads[i] = CreateThread(
 			NULL,
@@ -63,10 +73,11 @@ ULONGLONG calculate_pi(UINT thread_n, double& pi)
 	for (int i = 0; i < thread_n; i++)
 		ResumeThread(threads[i]);
 	WaitForMultipleObjects(thread_n, threads, TRUE, INFINITE);
-	pi /= precesion;
+	pi = global_pi / precesion;
 	end_time = GetTickCount64();
+	DeleteCriticalSection(lpCriticalSection);
 
-	for (int i = 0; i < thread_n; i++) 
+	for (int i = 0; i < thread_n; i++)
 	{
 		delete[] parameters[i];
 		CloseHandle(threads[i]);
@@ -75,6 +86,6 @@ ULONGLONG calculate_pi(UINT thread_n, double& pi)
 	delete[] threads;
 	delete[] starting_iterations;
 	CloseHandle(mutex);
-	
+
 	return end_time - start_time;
 }
