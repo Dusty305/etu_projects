@@ -15,16 +15,14 @@ struct AsyncCopyHandle
 	const LARGE_INTEGER file_size;
 	char* buffer;
 
-	AsyncCopyHandle(DWORD om, DWORD bps, DWORD btc, HANDLE in, HANDLE out, LARGE_INTEGER s)
+	AsyncCopyHandle(DWORD om, DWORD btc, HANDLE in, HANDLE out, LARGE_INTEGER s)
 		: overlapped_multiplier(om), bytes_tc(btc), in_file(in), out_file(out), file_size(s)
 	{
-		buffer = (char*)_aligned_malloc(btc, bps);
-		if (!buffer)
-			throw std::exception();
+		buffer = new char[btc + 1];
 	}
 	~AsyncCopyHandle()
 	{
-		_aligned_free(buffer);
+		delete[] buffer;
 	}
 };
 
@@ -32,7 +30,7 @@ VOID WINAPI async_write(DWORD code, DWORD byres, LPOVERLAPPED lpOv);
 VOID WINAPI async_read(DWORD code, DWORD bytes, LPOVERLAPPED out_lpOv);
 void async_end(HANDLE, HANDLE, LPOVERLAPPED, AsyncCopyHandle**);
 
-DWORD async_copy(const wstring& in, const wstring& out, const DWORD bps, const DWORD btc, const DWORD ovm)
+DWORD async_copy(const wstring& in, const wstring& out, const DWORD btc, const DWORD ovm)
 {
 	AsyncCopyHandle** ac_handles = nullptr;
 	LARGE_INTEGER file_size = { 0 };
@@ -57,7 +55,7 @@ DWORD async_copy(const wstring& in, const wstring& out, const DWORD bps, const D
 	LARGE_INTEGER offset = { 0 };
 	for (int i = 0; i < ovm; i++)
 	{
-		ac_handles[i] = new AsyncCopyHandle(ovm, bps, btc, in_file, out_file, file_size);
+		ac_handles[i] = new AsyncCopyHandle(ovm, btc, in_file, out_file, file_size);
 
 		overlapped[i].Internal = 0;
 		overlapped[i].InternalHigh = 0;

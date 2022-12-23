@@ -193,7 +193,7 @@ void print_change_file_attributes()
 	Функция Win32 API – TimeGetTime.
 */
 
-DWORD async_copy(const wstring& in, const wstring& out, const DWORD bps, const DWORD btc, const DWORD ovm);
+DWORD async_copy(const wstring& in, const wstring& out, const DWORD btc, const DWORD ovm);
 
 void async_file_copy(unordered_map<WCHAR, Volume*> volumes)
 {
@@ -205,8 +205,6 @@ void async_file_copy(unordered_map<WCHAR, Volume*> volumes)
 		wcout << L"Введите полный путь до файла, откуда будут асинхронно копироваться данные: ";
 		wcin >> in_file_path;
 		const DWORD bytes_ps = volumes[in_file_path[0]]->bytes_ps;
-		const DWORD bytes_pps = volumes[in_file_path[0]]->bytes_pps;
-		const DWORD sectors_pc = volumes[in_file_path[0]]->sectors_pc;
 
 		wcout << L"Введите полный путь до файла, куда будут асинхронно копироваться данные: ";
 		wcin >> out_file_path;
@@ -216,12 +214,12 @@ void async_file_copy(unordered_map<WCHAR, Volume*> volumes)
 		wcout << L"Введите количество перекрывающих операций ввода/вывода: ";
 		wcin >> overlapped_multiplier;
 
-		DWORD time = async_copy(in_file_path, out_file_path, bytes_pps, bytes_ps * buffer_multiplier, overlapped_multiplier);
+		DWORD time = async_copy(in_file_path, out_file_path, bytes_ps * buffer_multiplier, overlapped_multiplier);
 		if (time == -1)
 			cout << "Копирование завершено с ошибкой." << endl;
 		else
 			cout << "Копирование завершено успешно." << endl
-				 << "Время копирования: " << time << " мс" << endl;
+				 << "Время копирования: " << dec << time << " мс" << endl;
 	}
 	catch (const out_of_range exc)
 	{
