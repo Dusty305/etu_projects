@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <iostream>
 
 LPCRITICAL_SECTION lpCriticalSection = new CRITICAL_SECTION;
 UINT counter;
@@ -11,27 +12,29 @@ void count_pi(void* in_parameters)
 	const HANDLE mutex = *(HANDLE*)(parameters[1]);
 	const UINT iterations_per_block = *(UINT*)(parameters[2]);
 	const UINT precesion = *(UINT*)(parameters[3]);
-	UINT iteration = *(UINT*)(parameters[4]);
 	UINT N = precesion / iterations_per_block;
-
+	double sum = 0;
+	EnterCriticalSection(lpCriticalSection);
+	UINT iteration = counter++;
+	LeaveCriticalSection(lpCriticalSection);
 	while (iteration < N)
 	{
-		double sum = 0;
 		UINT block_start = iteration * iterations_per_block;
 		UINT block_end = block_start + iterations_per_block;
-		for (int i = block_start; i < block_end && i < N; i++)
+		for (int i = block_start; i < block_end && i < precesion; i++)
 			sum += 4 / (1 + ((i + 0.5) / precesion) * ((i + 0.5) / precesion));
-
 		EnterCriticalSection(lpCriticalSection);
-		global_pi += sum;
 		iteration = ++counter;
 		LeaveCriticalSection(lpCriticalSection);
 	}
+	EnterCriticalSection(lpCriticalSection);
+	global_pi += sum;
+	LeaveCriticalSection(lpCriticalSection);
 }
 
 ULONGLONG calculate_pi(UINT thread_n, double& pi)
 {
-	UINT iterations_per_block = 10;
+	UINT iterations_per_block = 1000;
 	UINT precesion = 100000000;
 	ULONGLONG start_time = 0, end_time = 0;
 	HANDLE* threads = nullptr;
@@ -55,9 +58,6 @@ ULONGLONG calculate_pi(UINT thread_n, double& pi)
 		parameters[i][1] = &mutex;
 		parameters[i][2] = &iterations_per_block;
 		parameters[i][3] = &precesion;
-		parameters[i][4] = &starting_iterations[i];
-		parameters[i][5] = &counter;
-		counter++;
 
 		threads[i] = CreateThread(
 			NULL,
