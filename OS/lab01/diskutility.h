@@ -21,6 +21,9 @@ void print_disks(std::unordered_map<WCHAR, Volume*> volumes)
 
 	Функции Win32 API – GetDriveType, GetVolumeInformation, GetDiskFreeSpace.
 */
+
+string get_sf_string(DWORD flags);
+
 void print_disk_info(std::unordered_map<WCHAR, Volume*> volumes)
 {
 	string inp;
@@ -38,17 +41,74 @@ void print_disk_info(std::unordered_map<WCHAR, Volume*> volumes)
 			<< L"\nСерийный номер тома: " << v->vs_number
 			<< L"\nМаксимальная длина имени файла: " << v->mc_length << "\n";
 
-		if (v->total_cn)
+		if (v->total_cn) 
+		{
 			wcout << L"\nКоличество секторов на кластер: " << v->sectors_pc
-			<< L"\nКоличество байтов на сектор: " << v->bytes_ps
-			<< L"\nКоличество свободных кластеров: " << v->free_cn
-			<< L"\nКоличество кластеров: " << v->total_cn
-			<< L"\nКоличество свободного места: " << v->free_space << L"GB\n";
+				<< L"\nКоличество байтов на сектор: " << v->bytes_ps
+				<< L"\nКоличество свободных кластеров: " << v->free_cn
+				<< L"\nКоличество кластеров: " << v->total_cn
+				<< L"\nКоличество свободного места: " << v->free_space << L"GB\n";
+			cout << get_sf_string(v->file_sf);
+		}
 	}
 	catch (const out_of_range exc)
 	{
 		cout << "Такого диска не существует.\n";
 	}
+}
+
+string get_sf_string(DWORD flags)
+{
+	stringstream ss;
+	if (flags & FILE_CASE_SENSITIVE_SEARCH)
+		ss << "- Диск поддерживает имена файлов с учетом регистра.\n";
+	if (flags & FILE_CASE_PRESERVED_NAMES)
+		ss << "- Диск поддерживает сохраненный регистр имен файлов при расположении имени на диске..\n";
+	if (flags & FILE_UNICODE_ON_DISK)
+		ss << "- Диск поддерживает Юникод в именах файлов, как они отображаются на диске.\n";
+	if (flags & FILE_PERSISTENT_ACLS)
+		ss << "- Диск сохраняет и применяет списки управления доступом (ACL).\n";
+	if (flags & FILE_FILE_COMPRESSION)
+		ss << "- Диск поддерживает сжатие на основе файлов.\n";
+	if (flags & FILE_VOLUME_QUOTAS)
+		ss << "- Диск поддерживает квоты дисков.\n";
+	if (flags & FILE_SUPPORTS_SPARSE_FILES)
+		ss << "- Диск поддерживает разреженные файлы.\n";
+	if (flags & FILE_SUPPORTS_REPARSE_POINTS)
+		ss << "- Диск поддерживает точки повторного анализа.\n";
+	if (flags & FILE_SUPPORTS_REMOTE_STORAGE)
+		ss << "- Диск поддерживает удаленные хранилища.\n";
+	if (flags & FILE_RETURNS_CLEANUP_RESULT_INFO)
+		ss << "- Диск возвращает информацию о результатах очистки.\n";
+	if (flags & FILE_VOLUME_IS_COMPRESSED)
+		ss << "- Диск является сжатым томом (например томом DoubleSpace).\n";
+	if (flags & FILE_SUPPORTS_OBJECT_IDS)
+		ss << "- Диск поддерживает идентификаторы объектов.\n";
+	if (flags & FILE_SUPPORTS_ENCRYPTION)
+		ss << "- Диск поддерживает зашифрованную файловую систему (EFS).\n";
+	if (flags & FILE_NAMED_STREAMS)
+		ss << "- Диск поддерживает именованные потоки.\n";
+	if (flags & FILE_READ_ONLY_VOLUME)
+		ss << "- Диск доступен только для чтения.\n";
+	if (flags & FILE_SEQUENTIAL_WRITE_ONCE)
+		ss << "- Диск поддерживает одну последовательную запись.\n";
+	if (flags & FILE_SUPPORTS_TRANSACTIONS)
+		ss << "- Диск поддерживает транзакции.\n";
+	if (flags & FILE_SUPPORTS_HARD_LINKS)
+		ss << "- Диск поддерживает жесткие связи.\n";
+	if (flags & FILE_SUPPORTS_EXTENDED_ATTRIBUTES)
+		ss << "- Диск поддерживает расширенные атрибуты.\n";
+	if (flags & FILE_SUPPORTS_OPEN_BY_FILE_ID)
+		ss << "- Файловая система диска поддерживает открытие с помощью FileID.\n";
+	if (flags & FILE_SUPPORTS_USN_JOURNAL)
+		ss << "- Диск поддерживает журналы обновления порядкового номера (USN).\n";
+	if (flags & FILE_SUPPORTS_BLOCK_REFCOUNTING)
+		ss << "- Диск поддерживает совместное использование логических кластеров между файлами на одном томе.\n";
+	if (flags & FILE_SUPPORTS_SPARSE_VDL)
+		ss << "- Диск поддерживает разреженный VDL.\n";
+	if (flags & FILE_DAX_VOLUME)
+		ss << "- Диск является томом прямого доступа (DAX).\n";
+	return ss.str();
 }
 
 /*

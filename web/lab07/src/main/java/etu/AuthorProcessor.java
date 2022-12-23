@@ -2,6 +2,7 @@ package etu;
 
 import java.io.IOException;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.*;
 
 import java.net.URLEncoder;
@@ -23,7 +24,10 @@ public class AuthorProcessor extends HttpServlet {
             response) throws ServletException, IOException {
         response.setContentType("text/html; charset=UTF-8");
         request.setCharacterEncoding("utf-8");
-
+        ServletInputStream stream = request.getInputStream();
+        byte[] b = new byte[8];
+        System.out.println(stream.readLine(b, 0, 3));
+        System.out.println(b);
         // Получение параметра из строки запроса
         final String author = request.getParameter("author");
         String color  = request.getParameter("color");
@@ -71,6 +75,7 @@ public class AuthorProcessor extends HttpServlet {
         // Перенаправление на страницу книг
         response.sendRedirect(response.encodeRedirectURL(request.getContextPath() +
                 "/AskAuthorName.jsp"));
+        HttpSession session = request.getSession();
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws
