@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <fstream>
 #include <time.h>
+#include <string>
 
 #define ITERATIONS_N 10
 
@@ -24,9 +25,8 @@ int main()
 
 	// INIT LOG
 	fstream log;
-	log.open("E:\\reader_logg.txt", fstream::app);
-	log << "PROCESS ID\t\tFILE PAGE\t\tPROCESS STATE\t\tTIME"
-		<< " (start time = " << start_time << ")\n";
+	string log_name = "E:\\reader_log" + to_string(process_id) + ".txt";
+	log.open(log_name.c_str(), fstream::app);
 
 	// INIT VIEW OF FILE
 	HANDLE mapping_object = OpenFileMapping(
@@ -59,22 +59,20 @@ int main()
 	}
 
 	// START READING
-	//char* buffer = new char[page_size];
 	for (int i = 0; i < ITERATIONS_N; i++)
 	{
 		int page = WaitForMultipleObjects(page_number, reader_sem, FALSE, INFINITE);
 		
-		log << process_id << "\t\t" << page << "\t\t" << "READ_START" << "\t\t" << GetTickCount64() - start_time << "\n";
+		log << process_id << "\t" << page << "\t" << "READ_START" << "\t" << GetTickCount64() - start_time << "\t" << GetTickCount64() << "\t" << start_time << "\n";
 		char* buf = (char*)((char*)view_of_file + page * page_size);
 		char buffer[2];
 		buffer[0] = buf[0];
 		buffer[1] = buf[1];
-		//memcpy(buffer, (void*)((int)view_of_file + page * page_size), page_size);
 		Sleep(500 + rand() % 1000);
-		log << process_id << "\t\t" << page << "\t\t" << "READ_END" << "\t\t" << GetTickCount64() - start_time << " (read " << buffer << ")" << "\n";
+		log << process_id << "\t" << page << "\t" << "READ_END" << "\t" << GetTickCount64() - start_time << "\t" << GetTickCount64() << "\t" << start_time << "\n";
 
 		ReleaseSemaphore(writer_sem[page], 1, NULL);
-		log << process_id << "\t\t" << page << "\t\t" << "SEM_RELEASED" << "\t\t" << GetTickCount64() - start_time << "\n";
+		log << process_id << "\t" << page << "\t" << "WSEM_RELEASED" << "\t" << GetTickCount64() - start_time << "\t" << GetTickCount64() << "\t" << start_time << "\n";
 	}
 
 	// CLOSE HANDLES
@@ -86,7 +84,6 @@ int main()
 	VirtualUnlock(view_of_file, page_size);
 	UnmapViewOfFile(view_of_file);
 	log.close();
-	//delete[] buffer;
 
 	return 0;
 }

@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <fstream>
 #include <time.h>
+#include <string>
 
 #define ITERATIONS_N 10
 
@@ -24,9 +25,8 @@ int main()
 
 	// INIT LOG
 	fstream log;
-	log.open("E:\\writer_logg.txt", fstream::app);
-	log << "PROCESS ID\t\tFILE PAGE\t\tPROCESS STATE\t\tTIME"
-		<< " (start time = " << start_time << ")\n";
+	string log_name = "E:\\writer_log" + to_string(process_id) + ".txt";
+	log.open(log_name.c_str(), fstream::app);
 
 	// INIT VIEW OF FILE
 	HANDLE mapping_object = OpenFileMapping(
@@ -57,21 +57,21 @@ int main()
 		reader_name[6] = '0' + i;
 		reader_sem[i] = OpenSemaphore(SEMAPHORE_MODIFY_STATE, FALSE, reader_name);
 	}
-
+	
 	// START WRITING
 	for (int i = 0; i < ITERATIONS_N; i++)
 	{
 		int page = WaitForMultipleObjects(page_number, writer_sem, FALSE, INFINITE);
 		
-		log << process_id << "\t\t" << page << "\t\t" << "WRITE_START" << "\t\t" << GetTickCount64() - start_time << "\n";
+		log << process_id << "\t" << page << "\t" << "WRITE_START" << "\t" << GetTickCount64() - start_time << "\t" << GetTickCount64() << "\t" << start_time << "\n";
 		char* buf = (char*)((char*)view_of_file + page * page_size);
 		buf[0] = 'a' + i;
 		buf[1] = '\0';
 		Sleep(500 + rand() % 1000);
-		log << process_id << "\t\t" << page << "\t\t" << "WRITE_END" << "\t\t" << GetTickCount64() - start_time << " (wrote " << buf << ")" << "\n";
+		log << process_id << "\t" << page << "\t" << "WRITE_END" << "\t" << GetTickCount64() - start_time << "\t" << GetTickCount64() << "\t" << start_time << "\n";
 		
 		ReleaseSemaphore(reader_sem[page], 1, NULL);
-		log << process_id << "\t\t" << page << "\t\t" << "SEM_RELEASED" << "\t\t" << GetTickCount64() - start_time << "\n";
+		log << process_id << "\t" << page << "\t" << "RSEM_RELEASED" << "\t" << GetTickCount64() - start_time << "\t" << GetTickCount64() << "\t" << start_time << "\n";
 	}
 
 	// CLOSE HANDLES
