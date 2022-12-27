@@ -24,7 +24,6 @@ void print_winapi_error() noexcept
 }
 
 HANDLE pipe = NULL;
-HANDLE event = NULL;
 OVERLAPPED overlapped;
 wstring pipe_name;
 
@@ -32,16 +31,11 @@ void create_pipe();
 void connect_pipe();
 void disconnect_pipe();
 void write_to_pipe();
-void wait_writing_to_pipe();
 
 int main()
 {
 	setlocale(LC_ALL, "ru");
-
-	event = CreateEvent(NULL, TRUE, FALSE, NULL);
 	ZeroMemory(&overlapped, sizeof(overlapped));
-	overlapped.hEvent = event;
-
 	while (true)
 	{
 		string inp;
@@ -50,8 +44,7 @@ int main()
 			<< "2. Подключить канал.\n"
 			<< "3. Отключить канал.\n"
 			<< "4. Произвести запись в канал.\n"
-			<< "5. Подождать конца записи.\n"
-			<< "6. Закрыть программу.\n";
+			<< "5. Закрыть программу.\n";
 		cin >> inp;
 
 		switch (inp[0])
@@ -71,10 +64,6 @@ int main()
 			write_to_pipe();
 			break;
 		case '5':
-			wait_writing_to_pipe();
-			break;
-		case '6':
-			CloseHandle(event);
 			CloseHandle(pipe);
 			return 0;
 		}
@@ -116,7 +105,6 @@ void connect_pipe()
 		if (GetLastError() == ERROR_IO_PENDING)
 		{
 			while (HasOverlappedIoCompleted(&overlapped));
-			ResetEvent(event);
 			cout << "Подключение прошло успешно.\n";
 		}
 		else
@@ -135,7 +123,8 @@ void disconnect_pipe()
 VOID WINAPI after_write(DWORD error, DWORD bytes, LPOVERLAPPED lpov) {
 	if (error)
 		print_winapi_error();
-	SetEvent(lpov->hEvent);
+	else
+		cout << "Операция записи завершилась.\n";
 }
 
 void write_to_pipe()
@@ -145,19 +134,11 @@ void write_to_pipe()
 	cin >> s;
 
 	ZeroMemory(&overlapped, sizeof(overlapped));
-	overlapped.hEvent = event;
-	if (WriteFileEx(pipe, s.c_str(), s.length(), &overlapped, after_write))
-		cout << "Операция записи началась.\n";
-	else
+	if (!WriteFileEx(pipe, s.c_str(), s.length(), &overlapped, after_write))
 		print_winapi_error();
-}
-
-void wait_writing_to_pipe()
-{
-	SleepEx(0, TRUE);
-	if (WaitForSingleObject(event, 2000) == WAIT_TIMEOUT)
-		cout << "Время ожидания истекло, операция записи не завершилась.\n";
 	else
-		cout << "Ожидание завершенно.\n";
-	ResetEvent(event);
+	{
+		cout << "Начало операции записи.\n";
+		SleepEx(0, TRUE);
+	}
 }

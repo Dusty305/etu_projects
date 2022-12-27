@@ -24,10 +24,8 @@ void print_winapi_error() noexcept
 }
 
 HANDLE pipe = NULL;
-HANDLE event = NULL;
 OVERLAPPED overlapped;
 wstring pipe_name;
-CHAR pipe_string[MAX_PATH];
 UINT pipe_string_length;
 
 void connect_pipe();
@@ -37,19 +35,14 @@ void output_pipe_str();
 int main()
 {
 	setlocale(LC_ALL, "ru");
-
-	event = CreateEvent(NULL, TRUE, FALSE, NULL);
 	ZeroMemory(&overlapped, sizeof(overlapped));
-	overlapped.hEvent = event;
-
 	while (true)
 	{
 		string inp;
 		cout
 			<< "1. Подключиться к каналу.\n"
 			<< "2. Начать чтение из канала.\n"
-			<< "3. Вывести содержание канала.\n"
-			<< "4. Закрыть программу.\n";
+			<< "3. Закрыть программу.\n";
 		cin >> inp;
 
 		switch (inp[0])
@@ -65,10 +58,6 @@ int main()
 			read_from_pipe();
 			break;
 		case '3':
-			output_pipe_str();
-			break;
-		case '4':
-			CloseHandle(event);
 			CloseHandle(pipe);
 			return 0;
 		}
@@ -101,27 +90,25 @@ void connect_pipe()
 
 VOID WINAPI after_read(DWORD error, DWORD bytes, LPOVERLAPPED lpov)
 {
+	char* str = (char*)lpov->hEvent;
+	str[bytes] = '\0';
 	if (error)
 		print_winapi_error();
-	SetEvent(lpov->hEvent);
+	else
+		cout << "Чтение завершено. Прочитанная строка: " << str << "\n";
+	delete[] str;
 }
 
 void read_from_pipe()
 {
 	ZeroMemory(&overlapped, sizeof(overlapped));
-	overlapped.hEvent = event;
+	char* pipe_string = new char[pipe_string_length + 1];
+	overlapped.hEvent = pipe_string;
 	if (ReadFileEx(pipe, pipe_string, pipe_string_length, &overlapped, after_read))
+	{
 		cout << "Чтение началось.\n";
+		SleepEx(0, TRUE);
+	}
 	else
 		print_winapi_error();
-}
-
-void output_pipe_str()
-{
-	SleepEx(0, TRUE);
-	if (WaitForSingleObject(event, 2000))
-		cout << "Время ожидание истекло, чтение не завершилось.\n";
-	else
-		cout << "Чтение завершено. Прочитанная строка: " << pipe_string << "\n";
-	ResetEvent(event);
 }

@@ -16,12 +16,12 @@ DWORD get_page_size()
 
 int main()
 {
-	srand(time(NULL));
-
 	const DWORD page_size = get_page_size();
 	const DWORD page_number = 0 + 3 + 0 + 5 + 0 + 1;
 	const DWORD process_id = GetCurrentProcessId();
 	const DWORD start_time = GetTickCount64();
+
+	srand(process_id);
 
 	// INIT LOG
 	fstream log;
@@ -50,12 +50,12 @@ int main()
 		// WRITER SEMAPHORE
 		wchar_t writer_name[] = L"writer ";
 		writer_name[6] = '0' + i;
-		writer_sem[i] = OpenSemaphore(SEMAPHORE_MODIFY_STATE, FALSE, writer_name);
+		writer_sem[i] = OpenSemaphore(SYNCHRONIZE | SEMAPHORE_MODIFY_STATE, FALSE, writer_name);
 
 		// READER SEMAPHORE
 		wchar_t reader_name[] = L"reader ";
 		reader_name[6] = '0' + i;
-		reader_sem[i] = OpenSemaphore(SYNCHRONIZE, FALSE, reader_name);
+		reader_sem[i] = OpenSemaphore(SYNCHRONIZE | SEMAPHORE_MODIFY_STATE, FALSE, reader_name);
 	}
 
 	// START READING
