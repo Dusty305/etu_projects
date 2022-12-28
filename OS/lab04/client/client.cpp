@@ -30,7 +30,7 @@ UINT pipe_string_length;
 
 void connect_pipe();
 void read_from_pipe();
-void output_pipe_str();
+void wait_read();
 
 int main()
 {
@@ -42,7 +42,8 @@ int main()
 		cout
 			<< "1. Подключиться к каналу.\n"
 			<< "2. Начать чтение из канала.\n"
-			<< "3. Закрыть программу.\n";
+			<< "3. Подолждать конец чтения.\n"
+			<< "4. Закрыть программу.\n";
 		cin >> inp;
 
 		switch (inp[0])
@@ -58,6 +59,9 @@ int main()
 			read_from_pipe();
 			break;
 		case '3':
+			wait_read();
+			break;
+		case '4':
 			CloseHandle(pipe);
 			return 0;
 		}
@@ -105,10 +109,13 @@ void read_from_pipe()
 	char* pipe_string = new char[pipe_string_length + 1];
 	overlapped.hEvent = pipe_string;
 	if (ReadFileEx(pipe, pipe_string, pipe_string_length, &overlapped, after_read))
-	{
 		cout << "Чтение началось.\n";
-		SleepEx(0, TRUE);
-	}
 	else
 		print_winapi_error();
+}
+
+void wait_read()
+{
+	if(!SleepEx(2000, TRUE))
+		cout << "Операция чтения не завершилась.\n";
 }

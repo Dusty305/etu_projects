@@ -31,6 +31,7 @@ void create_pipe();
 void connect_pipe();
 void disconnect_pipe();
 void write_to_pipe();
+void wait_write();
 
 int main()
 {
@@ -43,8 +44,9 @@ int main()
 			<< "1. Создать канал.\n"
 			<< "2. Подключить канал.\n"
 			<< "3. Отключить канал.\n"
-			<< "4. Произвести запись в канал.\n"
-			<< "5. Закрыть программу.\n";
+			<< "4. Начать запись в канал.\n"
+			<< "5. Подождать конец записи.\n"
+			<< "6. Закрыть программу.\n";
 		cin >> inp;
 
 		switch (inp[0])
@@ -64,6 +66,9 @@ int main()
 			write_to_pipe();
 			break;
 		case '5':
+			wait_write();
+			break;
+		case '6':
 			CloseHandle(pipe);
 			return 0;
 		}
@@ -139,6 +144,11 @@ void write_to_pipe()
 	else
 	{
 		cout << "Начало операции записи.\n";
-		SleepEx(0, TRUE);
 	}
+}
+
+void wait_write()
+{
+	if (!SleepEx(2000, TRUE))
+		cout << "Операция записи не завершилась.\n";
 }
